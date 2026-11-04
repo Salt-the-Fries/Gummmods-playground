@@ -115,6 +115,7 @@ export function parseGodotPck(bytes: Uint8Array): GodotPckInfo {
 
   const entries: GodotPckEntry[] = [];
   const warnings: string[] = [];
+  let flaggedEntryCount = 0;
   for (let i = 0; i < count; i++) {
     const storedPathLength = readU32(view, cursor, limit, `entry ${i} path length`);
     cursor += 4;
@@ -149,14 +150,17 @@ export function parseGodotPck(bytes: Uint8Array): GodotPckInfo {
     if (!removal && !encrypted && !sparseBundle) {
       requireRange(absoluteOffset, size, limit, `entry ${i} data`);
     }
-    if (removal) warnings.push(`Patch removal marker: ${path}`);
-    if (encrypted) warnings.push(`Encrypted resource cannot be previewed: ${path}`);
-    if (delta) warnings.push(`Delta-patched resource: ${path}`);
+    if (removal || encrypted || delta) flaggedEntryCount++;
+    if (warnings.length < 20) {
+      if (removal) warnings.push(`Patch removal marker: ${path}`);
+      if (encrypted) warnings.push(`Encrypted resource cannot be previewed: ${path}`);
+      if (delta) warnings.push(`Delta-patched resource: ${path}`);
+    }
 
     entries.push({ path, size, offset: absoluteOffset, md5, encrypted, removal, delta, extension, kind });
   }
 
-  if (sparseBundle) warnings.push("Sparse bundle detected: resource payloads may live outside this PCK file and are not validated here.");
+  if (flaggedEntryCount > 20) warnings.push(`${flaggedEntryCount - 20} additional flagged resources were omitted from the warning preview.`);\n  if (sparseBundle) warnings.push("Sparse bundle detected: resource payloads may live outside this PCK file and are not validated here.");
   if (entries.length === 0) warnings.push("The PCK directory is valid but contains no entries.");
   return {
     formatVersion,
