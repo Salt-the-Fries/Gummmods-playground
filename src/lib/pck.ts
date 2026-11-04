@@ -156,7 +156,7 @@ export function parseGodotPck(bytes: Uint8Array): GodotPckInfo {
     entries.push({ path, size, offset: absoluteOffset, md5, encrypted, removal, delta, extension, kind });
   }
 
-  if (entries.length === 0) warnings.push("The PCK directory is valid but contains no entries.");
+  if (sparseBundle) warnings.push("Sparse bundle detected: resource payloads may live outside this PCK file and are not validated here.");\n  if (entries.length === 0) warnings.push("The PCK directory is valid but contains no entries.");
   return {
     formatVersion,
     engineVersion: `${major}.${minor}.${patch}`,
