@@ -1,0 +1,15 @@
+{
+  "asset_id": "gummmods.probe.payload.v1",
+  "display_name": "Gummmods Probe Sample Asset",
+  "purpose": "APK analyzer integration fixture",
+  "resource_type": "metadata",
+  "expected_mod_targets": [
+    "res://assets/probe_icon.svg",
+    "res://assets/probe_payload.json"
+  ],
+  "test_values": {
+    "texture_variant": "violet_orbit",
+    "post_processing": "bloom_demo",
+    "movement_speed": 240.0
+  }
+}
