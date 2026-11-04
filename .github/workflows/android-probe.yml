@@ -1,0 +1,74 @@
+name: Build Android Probe APK
+
+on:
+  push:
+    branches: ["test/android-probe-apk"]
+    paths:
+      - "tests/android_probe/**"
+      - ".github/workflows/android-probe.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-apk:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install Android build tools
+        run: sdkmanager "platform-tools" "platforms;android-34" "build-tools;34.0.0"
+
+      - name: Install Godot 4.4.1
+        run: |
+          curl --fail --location --retry 3 \
+            https://github.com/godotengine/godot/releases/download/4.4.1-stable/Godot_v4.4.1-stable_linux.x86_64.zip \
+            --output /tmp/godot.zip
+          mkdir -p /tmp/godot
+          unzip -q /tmp/godot.zip -d /tmp/godot
+          chmod +x /tmp/godot/Godot_v4.4.1-stable_linux.x86_64
+
+      - name: Install Godot Android export templates
+        run: |
+          curl --fail --location --retry 3 \
+            https://github.com/godotengine/godot/releases/download/4.4.1-stable/Godot_v4.4.1-stable_export_templates.tpz \
+            --output /tmp/templates.tpz
+          mkdir -p "$HOME/.local/share/godot/export_templates/4.4.1.stable"
+          unzip -q /tmp/templates.tpz -d /tmp/godot-templates
+          cp -a /tmp/godot-templates/templates/. "$HOME/.local/share/godot/export_templates/4.4.1.stable/"
+
+      - name: Import Godot project resources
+        run: |
+          /tmp/godot/Godot_v4.4.1-stable_linux.x86_64 \
+            --headless --editor --path tests/android_probe --quit
+
+      - name: Export Android APK
+        env:
+          ANDROID_HOME: ${{ env.ANDROID_HOME }}
+          ANDROID_SDK_ROOT: ${{ env.ANDROID_SDK_ROOT }}
+        run: |
+          mkdir -p tests/android_probe/build
+          /tmp/godot/Godot_v4.4.1-stable_linux.x86_64 \
+            --headless --path tests/android_probe \
+            --export-debug "Android" tests/android_probe/build/GummmodsProbe.apk
+          test -s tests/android_probe/build/GummmodsProbe.apk
+          ls -lh tests/android_probe/build/GummmodsProbe.apk
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: gummmods-probe-apk
+          path: tests/android_probe/build/GummmodsProbe.apk
+          if-no-files-found: error
+          retention-days: 7
