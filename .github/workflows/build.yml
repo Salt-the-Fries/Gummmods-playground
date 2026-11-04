@@ -2,7 +2,7 @@ name: Build
 
 on:
   push:
-    branches: [main]
+    branches: [main, "test/**"]
   pull_request:
     branches: [main]
 
@@ -20,5 +20,17 @@ jobs:
         run: npm install --no-audit --no-fund
       - name: Type-check and build
         run: npm run build
+      - name: Install Godot 4.4.1 headless
+        run: |
+          curl --fail --location --retry 3 \
+            https://github.com/godotengine/godot/releases/download/4.4.1-stable/Godot_v4.4.1-stable_linux.x86_64.zip \
+            --output /tmp/godot.zip
+          mkdir -p /tmp/godot
+          unzip -q /tmp/godot.zip -d /tmp/godot
+          chmod +x /tmp/godot/Godot_v4.4.1-stable_linux.x86_64
+      - name: Generate authentic Godot PCK fixture
+        run: |
+          /tmp/godot/Godot_v4.4.1-stable_linux.x86_64 \
+            --headless --path tests/godot_fixture --script res://generate_fixture.gd
       - name: Test PCK parser
         run: npm test
