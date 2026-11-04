@@ -146,7 +146,7 @@ export function parseGodotPck(bytes: Uint8Array): GodotPckInfo {
     const delta = (entryFlags & 4) !== 0;
     const { extension, kind } = classify(path);
 
-    if (!removal && !encrypted) {
+    if (!removal && !encrypted && !sparseBundle) {
       requireRange(absoluteOffset, size, limit, `entry ${i} data`);
     }
     if (removal) warnings.push(`Patch removal marker: ${path}`);
