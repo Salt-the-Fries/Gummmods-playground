@@ -160,7 +160,8 @@ export function parseGodotPck(bytes: Uint8Array): GodotPckInfo {
     entries.push({ path, size, offset: absoluteOffset, md5, encrypted, removal, delta, extension, kind });
   }
 
-  if (flaggedEntryCount > 20) warnings.push(`${flaggedEntryCount - 20} additional flagged resources were omitted from the warning preview.`);\n  if (sparseBundle) warnings.push("Sparse bundle detected: resource payloads may live outside this PCK file and are not validated here.");
+  if (flaggedEntryCount > 20) warnings.push(`${flaggedEntryCount - 20} additional flagged resources were omitted from the warning preview.`);
+  if (sparseBundle) warnings.push("Sparse bundle detected: resource payloads may live outside this PCK file and are not validated here.");
   if (entries.length === 0) warnings.push("The PCK directory is valid but contains no entries.");
   return {
     formatVersion,
