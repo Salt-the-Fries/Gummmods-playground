@@ -5,9 +5,10 @@ import { parseGodotPck } from '../src/lib/pck.ts';
 function makePck({ flags = 2, fileOffset = 0, size = 3, formatVersion = 3 } = {}) {
   const path = new TextEncoder().encode('res://icon.png');
   const paddedLength = Math.ceil(path.length / 4) * 4;
-  const directoryOffset = 144;
-  const fileBase = 128;
-  const bytes = new Uint8Array(directoryOffset + 4 + 4 + paddedLength + 8 + 8 + 16 + 4);
+  const directoryOffset = formatVersion === 2 ? 96 : 144;
+  const fileBase = formatVersion === 2 ? 200 : 128;
+  const directorySize = 4 + 4 + paddedLength + 8 + 8 + 16 + 4;
+  const bytes = new Uint8Array(Math.max(directoryOffset + directorySize, fileBase + size));
   const view = new DataView(bytes.buffer);
 
   view.setUint32(0, 0x43504447, true); // GDPC
@@ -17,9 +18,12 @@ function makePck({ flags = 2, fileOffset = 0, size = 3, formatVersion = 3 } = {}
   view.setUint32(16, 1, true);
   view.setUint32(20, flags, true);
   view.setBigUint64(24, BigInt(fileBase), true);
-  view.setBigUint64(32, BigInt(directoryOffset), true);
-  view.setUint32(directoryOffset, 1, true);
 
+  if (formatVersion >= 3) {
+    view.setBigUint64(32, BigInt(directoryOffset), true);
+  }
+
+  view.setUint32(directoryOffset, 1, true);
   let cursor = directoryOffset + 4;
   view.setUint32(cursor, paddedLength, true);
   cursor += 4;
@@ -44,6 +48,19 @@ test('indexes a Godot 4.x PCK directory and classifies resources', () => {
   assert.equal(result.entries[0].offset, 128);
   assert.equal(result.entries[0].size, 3);
   assert.equal(result.entries[0].kind, 'Texture');
+});
+
+test('reads the legacy v2 directory position and file base', () => {
+  const result = parseGodotPck(makePck({ formatVersion: 2 }));
+  assert.equal(result.formatVersion, 2);
+  assert.equal(result.directoryOffset, 96);
+  assert.equal(result.entries[0].offset, 200);
+});
+
+test('reads v4 directories', () => {
+  const result = parseGodotPck(makePck({ formatVersion: 4 }));
+  assert.equal(result.formatVersion, 4);
+  assert.equal(result.fileCount, 1);
 });
 
 test('rejects encrypted directory metadata instead of guessing', () => {
