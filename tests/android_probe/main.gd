@@ -28,8 +28,7 @@ func _ready() -> void:
 	var title := Label.new()
 	title.text = "GUMMMODS PROBE"
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	title.add_theme_font_size_override("font_size",  thirty_two())
-	 title_placeholder(title)
+	title.add_theme_font_size_override("font_size", 32)
 	layout.add_child(title)
 
 	var subtitle := Label.new()
@@ -58,9 +57,3 @@ func _ready() -> void:
 	payload_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	payload_label.add_theme_color_override("font_color", Color("#d4deed"))
 	layout.add_child(payload_label)
-
-func thirty_two() -> int:
-	return 32
-
-func title_placeholder(_label: Label) -> void:
-	pass
