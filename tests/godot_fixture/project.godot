@@ -1,0 +1,9 @@
+; Minimal project used only to generate an authentic PCK fixture in CI.
+config_version=5
+
+[application]
+config/name="Gummmods PCK Fixture"
+config/features=PackedStringArray("4.4")
+
+[rendering]
+renderer/rendering_method="gl_compatibility"
