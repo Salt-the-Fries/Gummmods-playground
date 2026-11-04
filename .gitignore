@@ -3,3 +3,4 @@ dist
 .env*
 *.apk
 *.pck
+\n.test-artifacts/\n
