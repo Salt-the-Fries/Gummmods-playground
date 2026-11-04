@@ -35,7 +35,7 @@ function makePck({ flags = 2, fileOffset = 0, size = 3, formatVersion = 3 } = {}
   return bytes;
 }
 
-test('indexes a Godot 3.x PCK directory and classifies resources', () => {
+test('indexes a Godot 4.x PCK directory and classifies resources', () => {
   const result = parseGodotPck(makePck());
   assert.equal(result.formatVersion, 3);
   assert.equal(result.engineVersion, '4.3.1');
