@@ -8,7 +8,7 @@ function makePck({ flags = 2, fileOffset = 0, size = 3, formatVersion = 3 } = {}
   const directoryOffset = formatVersion === 2 ? 96 : 144;
   const fileBase = formatVersion === 2 ? 200 : 128;
   const directorySize = 4 + 4 + paddedLength + 8 + 8 + 16 + 4;
-  const bytes = new Uint8Array(Math.max(directoryOffset + directorySize, fileBase + size));
+  const bytes = new Uint8Array(Math.max(directoryOffset + directorySize, fileBase + Math.min(size, 3)));
   const view = new DataView(bytes.buffer);
 
   view.setUint32(0, 0x43504447, true); // GDPC
