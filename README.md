@@ -23,9 +23,9 @@ npm run dev
 
 ## Analyzer boundaries
 
-The analyzer runs in the browser and does not upload or modify the original APK. It currently decompresses the APK ZIP and reads standalone `.pck` files stored as APK entries. It does not yet carve PCK data embedded inside native libraries/executables, decrypt encrypted directories or file payloads, extract resource bytes, decompile scripts, or prove loader compatibility.
+The analyzer runs in the browser and does not upload or modify the original APK. It reads the APK ZIP directory first and only decompresses standalone `.pck` entries, avoiding unnecessary extraction of unrelated game assets. PCK entries larger than 256 MB are skipped to protect browser memory. It does not yet carve PCK data embedded inside native libraries/executables, decrypt encrypted directories or file payloads, extract resource bytes, decompile scripts, or prove loader compatibility.
 
-PCK paths and file metadata are treated as untrusted input and are bounds-checked before indexing. Unsupported formats and encrypted directories are reported rather than guessed at. Filename-based Godot fingerprints are evidence, not proof of compatibility.
+PCK paths and file metadata are treated as untrusted input and are bounds-checked before indexing. A GitHub Actions workflow type-checks/builds the app and runs parser regression tests. Unsupported formats and encrypted directories are reported rather than guessed at. Filename-based Godot fingerprints are evidence, not proof of compatibility.
 
 Runtime injection and mod installation must be handled only through a compatible loader. The project should never overwrite an original APK.
 
