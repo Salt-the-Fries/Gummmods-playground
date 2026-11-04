@@ -43,8 +43,18 @@ export default function App() {
     setQuery('');
 
     try {
-      const archive = unzipSync(new Uint8Array(await file.arrayBuffer()));
-      const names = Object.keys(archive).sort();
+      const archiveNames: string[] = [];
+      const archiveSizes: Record<string, number> = {};
+      const maxPckBytes = 256 * 1024 * 1024;
+      const archive = unzipSync(new Uint8Array(await file.arrayBuffer()), {
+        filter: item => {
+          archiveNames.push(item.name);
+          archiveSizes[item.name] = item.originalSize;
+          // Keep the APK directory listing, but only decompress PCK payloads.
+          return item.name.toLowerCase().endsWith('.pck') && item.originalSize <= maxPckBytes;
+        },
+      });
+      const names = archiveNames.sort();
       const lower = names.map(path => path.toLowerCase());
       setEntries(names);
 
@@ -58,8 +68,14 @@ export default function App() {
 
       const packResults: PackResult[] = [];
       for (const path of names.filter(item => item.toLowerCase().endsWith('.pck'))) {
+        if (archiveSizes[path] > maxPckBytes) {
+          packResults.push({ containerPath: path, error: 'PCK is larger than the 256 MB browser inspection limit. It was skipped to protect device memory.' });
+          continue;
+        }
         try {
-          packResults.push({ containerPath: path, info: parseGodotPck(archive[path]) });
+          const pckBytes = archive[path];
+          if (!pckBytes) throw new Error('PCK payload was not extracted from the APK archive.');
+          packResults.push({ containerPath: path, info: parseGodotPck(pckBytes) });
         } catch (error) {
           packResults.push({
             containerPath: path,
